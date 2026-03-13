@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOLTA — Contemporary Art Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0c0a;
+    --bg2: #141210;
+    --bg3: #1c1916;
+    --surface: #211e1a;
+    --border: #2e2a25;
+    --gold: #c9a84c;
+    --gold-light: #e8cc82;
+    --gold-dim: #7a6430;
+    --text: #f0ebe3;
+    --text-muted: #8a8278;
+    --text-dim: #5a5550;
+    --accent: #b85c38;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Outfit', sans-serif;
+    --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  #cursor {
+    position: fixed; top: 0; left: 0;
+    width: 8px; height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s var(--ease), opacity 0.3s;
+    transform: translate(-50%, -50%);
+  }
+  #cursor-ring {
+    position: fixed; top: 0; left: 0;
+    width: 32px; height: 32px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.35s var(--ease), width 0.3s, height 0.3s, opacity 0.3s;
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+  }
+  body.cursor-hover #cursor { transform: translate(-50%, -50%) scale(2); background: var(--gold-light); }
+  body.cursor-hover #cursor-ring { width: 48px; height: 48px; opacity: 0.2; }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9000;
+    opacity: 0.35;
+  }
+
+  /* NAVIGATION */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.5rem 3rem;
+    transition: background 0.4s, padding 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(13, 12, 10, 0.92);
+    backdrop-filter: blur(20px);
+    padding: 1rem 3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: var(--text);
+    text-decoration: none;
+    cursor: none;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
+  .nav-links a {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+    cursor: none;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: none; }
+  .hamburger span { width: 24px; height: 1px; background: var(--text); transition: 0.3s; }
+
+  /* MOBILE MENU */
+  .mobile-menu {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 999;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .mobile-menu.open { opacity: 1; pointer-events: all; }
+  .mobile-menu a {
+    font-family: var(--serif);
+    font-size: 2.5rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.3s;
+    cursor: none;
+  }
+  .mobile-menu a:hover { color: var(--gold); }
+
+  /* PAGE SYSTEM */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* ===== HOMEPAGE ===== */
+  .hero {
+    position: relative;
+    height: 100vh;
+    display: flex; align-items: flex-end;
+    padding: 0 3rem 5rem;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #1a1208 0%, #0d0c0a 50%, #0a0d10 100%);
+  }
+  .hero-img {
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=1600&auto=format&fit=crop') center/cover;
+    opacity: 0.2;
+    mix-blend-mode: luminosity;
+  }
+  .hero-content {
+    position: relative; z-index: 1;
+    max-width: 700px;
+    animation: fadeUp 1.2s var(--ease) both;
+  }
+  .hero-tag {
+    font-size: 0.65rem; font-weight: 400;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  .hero h1 em { font-style: italic; color: var(--gold-light); }
+  .hero p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    max-width: 440px;
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+  }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--gold);
+    color: var(--bg);
+    padding: 0.85rem 2rem;
+    font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    border: none; cursor: none;
+    transition: background 0.3s, transform 0.3s;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    color: var(--text-muted);
+    padding: 0.85rem 0;
+    font-size: 0.7rem; font-weight: 400;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    border: none; background: none; cursor: none;
+    transition: color 0.3s;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--gold); border-color: var(--gold); }
+  .hero-scroll {
+    position: absolute; right: 3rem; bottom: 5rem;
+    writing-mode: vertical-rl;
+    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-dim);
+    animation: fadeUp 1.5s var(--ease) 0.5s both;
+  }
+  .hero-scroll::after {
+    content: ''; display: block;
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--gold-dim), transparent);
+    margin: 0.8rem auto 0;
+  }
+
+  /* FEATURED WORKS */
+  section { padding: 6rem 3rem; }
+  .section-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 3.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+  }
+  .section-label {
+    font-size: 0.6rem; font-weight: 400;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.5rem;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 300;
+    line-height: 1.1;
+  }
+  .section-title em { font-style: italic; }
+  .view-all {
+    font-size: 0.65rem; font-weight: 400;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none; cursor: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: color 0.3s, border-color 0.3s;
+    white-space: nowrap;
+  }
+  .view-all:hover { color: var(--gold); border-color: var(--gold); }
+
+  .featured-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 2px;
+  }
+  .artwork-card {
+    position: relative; overflow: hidden; cursor: none;
+    background: var(--surface);
+  }
+  .artwork-card:first-child { grid-row: span 2; }
+  .artwork-card img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s var(--ease), filter 0.5s;
+    filter: saturate(0.7) brightness(0.9);
+  }
+  .artwork-card:first-child img { min-height: 520px; }
+  .artwork-card:not(:first-child) img { height: 260px; }
+  .artwork-card:hover img { transform: scale(1.05); filter: saturate(1) brightness(1); }
+  .artwork-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(13,12,10,0.9) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 1.8rem;
+  }
+  .artwork-card:hover .artwork-overlay { opacity: 1; }
+  .artwork-title {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 0.25rem;
+  }
+  .artwork-meta { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+  .artwork-price { color: var(--gold); font-size: 0.75rem; margin-top: 0.5rem; }
+
+  /* ABOUT STRIP */
+  .about-strip {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 5rem 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+  .about-strip-text h2 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 300;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+  .about-strip-text h2 em { font-style: italic; color: var(--gold-light); }
+  .about-strip-text p { color: var(--text-muted); line-height: 1.9; font-size: 0.9rem; }
+  .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .stat { border-left: 2px solid var(--gold-dim); padding-left: 1.2rem; }
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 2.8rem;
+    font-weight: 300;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim); margin-top: 0.3rem; }
+
+  /* EXHIBITIONS */
+  .exhibition-list { display: flex; flex-direction: column; gap: 1px; }
+  .exhibition-item {
+    display: grid;
+    grid-template-columns: 200px 1fr auto;
+    gap: 2rem; align-items: center;
+    padding: 2rem;
+    background: var(--surface);
+    border: 1px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+    cursor: none;
+  }
+  .exhibition-item:hover { border-color: var(--gold-dim); background: var(--bg3); }
+  .exhibition-img { height: 120px; object-fit: cover; width: 100%; filter: saturate(0.5); transition: filter 0.4s; }
+  .exhibition-item:hover .exhibition-img { filter: saturate(1); }
+  .exhibition-badge {
+    display: inline-block;
+    font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid;
+    margin-bottom: 0.5rem;
+  }
+  .badge-current { color: var(--gold); border-color: var(--gold); }
+  .badge-upcoming { color: var(--text-muted); border-color: var(--border); }
+  .badge-past { color: var(--text-dim); border-color: var(--text-dim); }
+  .exhibition-name {
+    font-family: var(--serif); font-size: 1.3rem;
+    font-weight: 300; margin-bottom: 0.3rem;
+  }
+  .exhibition-dates { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.05em; }
+  .exhibition-arrow { color: var(--gold-dim); font-size: 1.2rem; transition: transform 0.3s, color 0.3s; }
+  .exhibition-item:hover .exhibition-arrow { transform: translateX(4px); color: var(--gold); }
+
+  /* ===== GALLERY PAGE ===== */
+  .page-hero {
+    padding: 10rem 3rem 4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1;
+  }
+  .page-hero p { color: var(--text-muted); margin-top: 1rem; font-size: 0.9rem; max-width: 500px; }
+
+  .filters {
+    padding: 1.5rem 3rem;
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky; top: 64px; z-index: 100;
+  }
+  .filter-btn {
+    font-size: 0.65rem; font-weight: 400;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border);
+    background: none; color: var(--text-muted);
+    cursor: none; transition: all 0.25s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.05); }
+
+  .artworks-grid {
+    padding: 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  .artwork-grid-card { cursor: none; }
+  .artwork-grid-card .img-wrap {
+    overflow: hidden; background: var(--surface);
+    margin-bottom: 1rem;
+  }
+  .artwork-grid-card img {
+    width: 100%; display: block;
+    transition: transform 0.6s var(--ease), filter 0.4s;
+    filter: saturate(0.75);
+  }
+  .artwork-grid-card:hover img { transform: scale(1.04); filter: saturate(1); }
+  .artwork-grid-card .card-title {
+    font-family: var(--serif);
+    font-size: 1.15rem; font-weight: 300; font-style: italic;
+    margin-bottom: 0.2rem;
+  }
+  .artwork-grid-card .card-artist { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
+  .artwork-grid-card .card-price { font-size: 0.75rem; color: var(--gold); margin-top: 0.4rem; }
+
+  /* ===== ARTWORK MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(13,12,10,0.95);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+    backdrop-filter: blur(8px);
+    padding: 2rem;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    max-width: 900px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    transform: translateY(20px);
+    transition: transform 0.4s var(--ease);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-img-side { position: relative; min-height: 400px; }
+  .modal-img-side img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .modal-info { padding: 2.5rem; display: flex; flex-direction: column; }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: none; border: none;
+    color: var(--text); font-size: 1.5rem;
+    cursor: none; z-index: 1;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(13,12,10,0.7);
+    transition: color 0.3s;
+  }
+  .modal-close:hover { color: var(--gold); }
+  .modal-artist-tag { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; cursor: none; }
+  .modal-artist-tag:hover { text-decoration: underline; }
+  .modal-title {
+    font-family: var(--serif); font-size: 2rem;
+    font-weight: 300; font-style: italic;
+    line-height: 1.2; margin-bottom: 1.5rem;
+  }
+  .modal-specs { border-top: 1px solid var(--border); padding-top: 1.5rem; margin-bottom: 1.5rem; }
+  .spec-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+  .spec-key { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+  .spec-val { font-size: 0.8rem; color: var(--text-muted); }
+  .modal-price { font-family: var(--serif); font-size: 1.8rem; color: var(--gold-light); margin-bottom: 1.5rem; }
+  .modal-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.8; margin-bottom: auto; }
+  .modal-actions { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+  .btn-inquire {
+    flex: 1; padding: 0.85rem 1.5rem;
+    background: var(--gold); color: var(--bg);
+    border: none; cursor: none;
+    font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    transition: background 0.3s;
+  }
+  .btn-inquire:hover { background: var(--gold-light); }
+  .btn-wishlist {
+    padding: 0.85rem 1.2rem;
+    background: none; border: 1px solid var(--border);
+    color: var(--text-muted); cursor: none;
+    font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+    transition: all 0.3s;
+  }
+  .btn-wishlist:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ===== ARTISTS PAGE ===== */
+  .artists-grid {
+    padding: 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+  .artist-card {
+    cursor: none; position: relative; overflow: hidden;
+    background: var(--surface);
+  }
+  .artist-card img { width: 100%; height: 300px; object-fit: cover; display: block; filter: saturate(0.3) brightness(0.7); transition: filter 0.6s, transform 0.6s var(--ease); }
+  .artist-card:hover img { filter: saturate(0.7) brightness(0.85); transform: scale(1.03); }
+  .artist-info { padding: 1.5rem; }
+  .artist-name { font-family: var(--serif); font-size: 1.3rem; font-weight: 300; font-style: italic; margin-bottom: 0.3rem; }
+  .artist-detail { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+  .artist-works-count { font-size: 0.7rem; color: var(--gold-dim); margin-top: 0.5rem; }
+
+  /* ===== EXHIBITIONS PAGE ===== */
+  .exhibitions-grid {
+    padding: 3rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+  .exhibition-card {
+    cursor: none; background: var(--surface);
+    border: 1px solid var(--border);
+    transition: border-color 0.3s;
+  }
+  .exhibition-card:hover { border-color: var(--gold-dim); }
+  .exhibition-card img { width: 100%; height: 200px; object-fit: cover; display: block; filter: saturate(0.5); transition: filter 0.4s, transform 0.6s var(--ease); }
+  .exhibition-card:hover img { filter: saturate(1); transform: scale(1.02); }
+  .exhibition-card-body { padding: 1.5rem; overflow: hidden; }
+  .ex-card-name { font-family: var(--serif); font-size: 1.4rem; font-weight: 300; margin: 0.6rem 0 0.3rem; }
+  .ex-card-dates { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 1rem; }
+  .ex-card-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; }
+
+  /* ===== ABOUT PAGE ===== */
+  .about-page { max-width: 900px; margin: 0 auto; padding: 3rem; }
+  .about-intro {
+    padding: 6rem 0 4rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4rem;
+  }
+  .about-intro h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 300; line-height: 1.1;
+    margin-bottom: 2rem;
+  }
+  .about-intro h1 em { font-style: italic; color: var(--gold-light); }
+  .about-intro p { font-size: 1rem; color: var(--text-muted); line-height: 2; max-width: 600px; }
+  .team-section h2 { font-family: var(--serif); font-size: 2rem; font-weight: 300; margin-bottom: 2rem; }
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 4rem; }
+  .team-member img { width: 100%; height: 240px; object-fit: cover; filter: saturate(0.3) sepia(0.2); margin-bottom: 1rem; display: block; }
+  .team-name { font-family: var(--serif); font-size: 1.1rem; font-style: italic; margin-bottom: 0.2rem; }
+  .team-role { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+  .info-blocks { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; border-top: 1px solid var(--border); padding-top: 3rem; }
+  .info-block h3 { font-family: var(--serif); font-size: 1.2rem; font-weight: 300; font-style: italic; margin-bottom: 1rem; color: var(--gold-light); }
+  .info-block p, .info-block li { font-size: 0.85rem; color: var(--text-muted); line-height: 2; list-style: none; }
+
+  /* ===== CONTACT PAGE ===== */
+  .contact-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 80vh; }
+  .contact-info { padding: 5rem 3rem; background: var(--bg2); border-right: 1px solid var(--border); }
+  .contact-info h2 { font-family: var(--serif); font-size: 2.5rem; font-weight: 300; font-style: italic; margin-bottom: 2rem; line-height: 1.2; }
+  .contact-detail { margin-bottom: 2rem; }
+  .contact-detail-label { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.4rem; }
+  .contact-detail-val { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; }
+  .contact-form-wrap { padding: 5rem 3rem; }
+  .contact-form-wrap h2 { font-family: var(--serif); font-size: 2rem; font-weight: 300; margin-bottom: 2rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-field { margin-bottom: 1.2rem; }
+  .form-field label { display: block; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .form-field input, .form-field select, .form-field textarea {
+    width: 100%;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 0.8rem 1rem;
+    font-family: var(--sans); font-size: 0.85rem; font-weight: 300;
+    outline: none; cursor: none;
+    transition: border-color 0.3s;
+    -webkit-appearance: none;
+  }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--gold); }
+  .form-field textarea { resize: vertical; min-height: 120px; }
+  .form-success {
+    display: none;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid var(--gold-dim);
+    padding: 1.5rem;
+    font-size: 0.85rem; color: var(--gold-light);
+    margin-top: 1rem;
+    text-align: center;
+  }
+  .form-success.show { display: block; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 2rem;
+    align-items: start;
+    background: var(--bg);
+  }
+  .footer-brand { font-family: var(--serif); font-size: 1.4rem; font-weight: 300; letter-spacing: 0.2em; margin-bottom: 0.5rem; }
+  .footer-brand span { color: var(--gold); }
+  .footer-tagline { font-size: 0.75rem; color: var(--text-dim); }
+  .footer-col h4 { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+  .footer-col a { display: block; font-size: 0.8rem; color: var(--text-muted); text-decoration: none; cursor: none; margin-bottom: 0.5rem; transition: color 0.3s; }
+  .footer-col a:hover { color: var(--text); }
+  .footer-bottom { border-top: 1px solid var(--border); padding: 1.5rem 3rem; display: flex; justify-content: space-between; align-items: center; }
+  .footer-copy { font-size: 0.7rem; color: var(--text-dim); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { opacity: 0; transform: translateY(25px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dim); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 1.2rem 1.5rem; }
+    nav.scrolled { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 0 1.5rem 4rem; }
+    .featured-grid { grid-template-columns: 1fr; }
+    .artwork-card:first-child { grid-row: span 1; }
+    .artwork-card:first-child img { min-height: 350px; }
+    .artwork-card:not(:first-child) img { height: 220px; }
+    .about-strip { grid-template-columns: 1fr; gap: 3rem; padding: 3rem 1.5rem; }
+    .exhibition-item { grid-template-columns: 1fr; }
+    .exhibition-img { height: 180px; }
+    .modal { grid-template-columns: 1fr; }
+    .modal-img-side { min-height: 250px; }
+    .contact-layout { grid-template-columns: 1fr; }
+    .contact-info, .contact-form-wrap { padding: 3rem 1.5rem; }
+    .info-blocks { grid-template-columns: 1fr; }
+    .artworks-grid { padding: 1.5rem; }
+    .artists-grid { padding: 1.5rem; }
+    .exhibitions-grid { padding: 1.5rem; }
+    footer { grid-template-columns: 1fr; padding: 2rem 1.5rem; }
+    .footer-bottom { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+    .filters { padding: 1rem 1.5rem; top: 56px; }
+    .page-hero { padding: 8rem 1.5rem 3rem; }
+    .about-page { padding: 1.5rem; }
+    .hero-scroll { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Navigation -->
+<nav id="navbar">
+  <a class="nav-logo" href="#" onclick="showPage('home')">VOLT<span>A</span></a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showPage('gallery')" data-page="gallery">Collection</a></li>
+    <li><a href="#" onclick="showPage('artists')" data-page="artists">Artists</a></li>
+    <li><a href="#" onclick="showPage('exhibitions')" data-page="exhibitions">Exhibitions</a></li>
+    <li><a href="#" onclick="showPage('about')" data-page="about">About</a></li>
+    <li><a href="#" onclick="showPage('contact')" data-page="contact">Contact</a></li>
+  </ul>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#" onclick="showPage('home');toggleMenu()">Home</a>
+  <a href="#" onclick="showPage('gallery');toggleMenu()">Collection</a>
+  <a href="#" onclick="showPage('artists');toggleMenu()">Artists</a>
+  <a href="#" onclick="showPage('exhibitions');toggleMenu()">Exhibitions</a>
+  <a href="#" onclick="showPage('about');toggleMenu()">About</a>
+  <a href="#" onclick="showPage('contact');toggleMenu()">Contact</a>
+</div>
+
+<!-- ===== HOME PAGE ===== -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-img"></div>
+    <div class="hero-content">
+      <div class="hero-tag">Contemporary Art Gallery — Est. 2009</div>
+      <h1>Where Art<br><em>Finds Voice</em></h1>
+      <p>A curated space for transformative contemporary works — paintings, sculptures, and installations from artists redefining the boundaries of visual expression.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn-primary" onclick="showPage('gallery')">View Collection →</a>
+        <a href="#" class="btn-ghost" onclick="showPage('exhibitions')">Current Exhibition</a>
+      </div>
+    </div>
+    <div class="hero-scroll">Scroll</div>
+  </div>
+
+  <!-- Featured Works -->
+  <section>
+    <div class="section-header">
+      <div>
+        <div class="section-label">Selected Works</div>
+        <h2 class="section-title">Featured <em>Collection</em></h2>
+      </div>
+      <a href="#" class="view-all" onclick="showPage('gallery')">View All Works</a>
+    </div>
+    <div class="featured-grid">
+      <div class="artwork-card" onclick="openModal(0)">
+        <img src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&auto=format&fit=crop" alt="Threshold">
+        <div class="artwork-overlay">
+          <div class="artwork-title">Threshold</div>
+          <div class="artwork-meta">Mara Voss — Oil on Canvas, 2023</div>
+          <div class="artwork-price">€ 18,500</div>
+        </div>
+      </div>
+      <div class="artwork-card" onclick="openModal(1)">
+        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&auto=format&fit=crop" alt="Silent Grid">
+        <div class="artwork-overlay">
+          <div class="artwork-title">Silent Grid</div>
+          <div class="artwork-meta">Ren Takeda — Mixed Media, 2022</div>
+          <div class="artwork-price">€ 8,200</div>
+        </div>
+      </div>
+      <div class="artwork-card" onclick="openModal(2)">
+        <img src="https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=600&auto=format&fit=crop" alt="Erosion Study">
+        <div class="artwork-overlay">
+          <div class="artwork-title">Erosion Study III</div>
+          <div class="artwork-meta">Camille Dufresne — Acrylic, 2023</div>
+          <div class="artwork-price">€ 6,400</div>
+        </div>
+      </div>
+      <div class="artwork-card" onclick="openModal(3)">
+        <img src="https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=600&auto=format&fit=crop" alt="Night Archive">
+        <div class="artwork-overlay">
+          <div class="artwork-title">Night Archive</div>
+          <div class="artwork-meta">Luca Marini — Photography, 2021</div>
+          <div class="artwork-price">€ 3,800</div>
+        </div>
+      </div>
+      <div class="artwork-card" onclick="openModal(4)">
+        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&auto=format&fit=crop" alt="Passage">
+        <div class="artwork-overlay">
+          <div class="artwork-title">Passage</div>
+          <div class="artwork-meta">Seo Yoon Park — Sculpture, 2022</div>
+          <div class="artwork-price">€ 22,000</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Strip -->
+  <div class="about-strip fade-up">
+    <div class="about-strip-text">
+      <h2>Fifteen years of <em>radical</em> curation in the heart of the city</h2>
+      <p>VOLTA Gallery champions artists who challenge convention. From intimate paintings to large-scale installations, our program represents some of the most significant voices in contemporary art — spanning five continents and three generations of practice.</p>
+    </div>
+    <div class="about-stats">
+      <div class="stat"><div class="stat-num">240+</div><div class="stat-label">Artists Represented</div></div>
+      <div class="stat"><div class="stat-num">84</div><div class="stat-label">Exhibitions Held</div></div>
+      <div class="stat"><div class="stat-num">15</div><div class="stat-label">Years Active</div></div>
+      <div class="stat"><div class="stat-num">12</div><div class="stat-label">Art Fairs Annually</div></div>
+    </div>
+  </div>
+
+  <!-- Exhibitions -->
+  <section>
+    <div class="section-header">
+      <div>
+        <div class="section-label">On View</div>
+        <h2 class="section-title">Current <em>Exhibitions</em></h2>
+      </div>
+      <a href="#" class="view-all" onclick="showPage('exhibitions')">All Exhibitions</a>
+    </div>
+    <div class="exhibition-list">
+      <div class="exhibition-item" onclick="showPage('exhibitions')">
+        <img class="exhibition-img" src="https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=300&auto=format&fit=crop" alt="">
+        <div>
+          <span class="exhibition-badge badge-current">Now On</span>
+          <div class="exhibition-name">Fragments of the Unseen</div>
+          <div class="exhibition-dates">March 1 – April 20, 2026 · Main Gallery</div>
+        </div>
+        <div class="exhibition-arrow">→</div>
+      </div>
+      <div class="exhibition-item" onclick="showPage('exhibitions')">
+        <img class="exhibition-img" src="https://images.unsplash.com/photo-1549490349-8643362247b5?w=300&auto=format&fit=crop" alt="">
+        <div>
+          <span class="exhibition-badge badge-upcoming">Upcoming</span>
+          <div class="exhibition-name">Material Memory</div>
+          <div class="exhibition-dates">May 10 – June 28, 2026 · East Wing</div>
+        </div>
+        <div class="exhibition-arrow">→</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <div class="footer-brand">VOLT<span>A</span></div>
+      <div class="footer-tagline">Contemporary Art Gallery</div>
+    </div>
+    <div class="footer-col">
+      <h4>Navigate</h4>
+      <a href="#" onclick="showPage('gallery')">Collection</a>
+      <a href="#" onclick="showPage('artists')">Artists</a>
+      <a href="#" onclick="showPage('exhibitions')">Exhibitions</a>
+      <a href="#" onclick="showPage('about')">About</a>
+    </div>
+    <div class="footer-col">
+      <h4>Visit</h4>
+      <a href="#">12 Rue des Arts, Paris</a>
+      <a href="#">Tue–Sat: 11am – 7pm</a>
+      <a href="#">info@voltagallery.com</a>
+    </div>
+  </footer>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 VOLTA Gallery. All rights reserved.</div>
+    <div class="footer-copy">Paris · New York · Tokyo</div>
+  </div>
+</div>
+
+<!-- ===== GALLERY PAGE ===== -->
+<div class="page" id="page-gallery">
+  <div class="page-hero">
+    <div class="section-label">The Collection</div>
+    <h1>Works of<br><em>Distinction</em></h1>
+    <p>Over 300 works from our represented artists, available for acquisition or loan.</p>
+  </div>
+  <div class="filters" id="galleryFilters">
+    <button class="filter-btn active" onclick="filterWorks('all',this)">All Works</button>
+    <button class="filter-btn" onclick="filterWorks('Painting',this)">Painting</button>
+    <button class="filter-btn" onclick="filterWorks('Sculpture',this)">Sculpture</button>
+    <button class="filter-btn" onclick="filterWorks('Photography',this)">Photography</button>
+    <button class="filter-btn" onclick="filterWorks('Mixed Media',this)">Mixed Media</button>
+    <button class="filter-btn" onclick="filterWorks('Installation',this)">Installation</button>
+  </div>
+  <div class="artworks-grid" id="artworksGrid"></div>
+  <footer style="margin-top:0">
+    <div><div class="footer-brand">VOLT<span>A</span></div></div>
+    <div class="footer-col"><h4>Navigate</h4><a href="#" onclick="showPage('home')">Home</a><a href="#" onclick="showPage('artists')">Artists</a><a href="#" onclick="showPage('exhibitions')">Exhibitions</a></div>
+    <div class="footer-col"><h4>Visit</h4><a href="#">12 Rue des Arts, Paris</a><a href="#">info@voltagallery.com</a></div>
+  </footer>
+</div>
+
+<!-- ===== ARTISTS PAGE ===== -->
+<div class="page" id="page-artists">
+  <div class="page-hero">
+    <div class="section-label">Our Roster</div>
+    <h1>The <em>Artists</em></h1>
+    <p>A global community of voices shaping the contemporary art landscape.</p>
+  </div>
+  <div class="artists-grid" id="artistsGrid"></div>
+  <footer style="margin-top:0">
+    <div><div class="footer-brand">VOLT<span>A</span></div></div>
+    <div class="footer-col"><h4>Navigate</h4><a href="#" onclick="showPage('home')">Home</a><a href="#" onclick="showPage('gallery')">Collection</a></div>
+    <div class="footer-col"><h4>Contact</h4><a href="#">info@voltagallery.com</a></div>
+  </footer>
+</div>
+
+<!-- ===== EXHIBITIONS PAGE ===== -->
+<div class="page" id="page-exhibitions">
+  <div class="page-hero">
+    <div class="section-label">Program</div>
+    <h1>Exhibitions</h1>
+    <p>Past, present, and future — a record of ideas in motion.</p>
+  </div>
+  <div style="padding:1.5rem 3rem 0; display:flex; gap:0.5rem; flex-wrap:wrap; border-bottom:1px solid var(--border)">
+    <button class="filter-btn active" onclick="filterExhibitions('all',this)">All</button>
+    <button class="filter-btn" onclick="filterExhibitions('current',this)">Current</button>
+    <button class="filter-btn" onclick="filterExhibitions('upcoming',this)">Upcoming</button>
+    <button class="filter-btn" onclick="filterExhibitions('past',this)">Past</button>
+  </div>
+  <div class="exhibitions-grid" id="exhibitionsGrid"></div>
+  <footer style="margin-top:0">
+    <div><div class="footer-brand">VOLT<span>A</span></div></div>
+    <div class="footer-col"><h4>Navigate</h4><a href="#" onclick="showPage('home')">Home</a><a href="#" onclick="showPage('gallery')">Collection</a></div>
+    <div class="footer-col"><h4>Contact</h4><a href="#">info@voltagallery.com</a></div>
+  </footer>
+</div>
+
+<!-- ===== ABOUT PAGE ===== -->
+<div class="page" id="page-about">
+  <div style="padding-top:80px">
+    <div class="about-page">
+      <div class="about-intro">
+        <div class="section-label">About VOLTA</div>
+        <h1>A space built on<br><em>conviction</em> and<br>curiosity</h1>
+        <p>Founded in Paris in 2009, VOLTA Gallery was born from a belief that art has the power to challenge, move, and transform. For fifteen years we have championed artists at the forefront of contemporary practice — providing not just exhibition space, but a long-term commitment to their development and visibility on the world stage.</p>
+      </div>
+      <div class="team-section">
+        <h2 class="fade-up">The <em>Team</em></h2>
+        <div class="team-grid">
+          <div class="team-member fade-up">
+            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80" alt="Isabelle Renard">
+            <div class="team-name">Isabelle Renard</div>
+            <div class="team-role">Founder & Director</div>
+          </div>
+          <div class="team-member fade-up">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80" alt="Marcus Webb">
+            <div class="team-name">Marcus Webb</div>
+            <div class="team-role">Head of Exhibitions</div>
+          </div>
+          <div class="team-member fade-up">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80" alt="Yuki Tanaka">
+            <div class="team-name">Yuki Tanaka</div>
+            <div class="team-role">Senior Curator</div>
+          </div>
+          <div class="team-member fade-up">
+            <img src="https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=400&auto=format&fit=crop&q=80" alt="Remi Okafor">
+            <div class="team-name">Remi Okafor</div>
+            <div class="team-role">Artist Relations</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-blocks fade-up">
+        <div class="info-block">
+          <h3>Visit Us</h3>
+          <p>12 Rue des Arts<br>75004 Paris, France<br><br>Tuesday – Saturday<br>11:00 — 19:00<br><br>Sunday – Monday: Closed</p>
+        </div>
+        <div class="info-block">
+          <h3>Get in Touch</h3>
+          <p>General Enquiries<br>info@voltagallery.com<br><br>Acquisitions<br>acquisitions@voltagallery.com<br><br>+33 1 42 74 88 20</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer style="margin-top:4rem">
+    <div><div class="footer-brand">VOLT<span>A</span></div></div>
+    <div class="footer-col"><h4>Navigate</h4><a href="#" onclick="showPage('home')">Home</a><a href="#" onclick="showPage('gallery')">Collection</a></div>
+    <div class="footer-col"><h4>Contact</h4><a href="#">info@voltagallery.com</a></div>
+  </footer>
+</div>
+
+<!-- ===== CONTACT PAGE ===== -->
+<div class="page" id="page-contact">
+  <div style="padding-top:80px">
+    <div class="contact-layout">
+      <div class="contact-info">
+        <div class="section-label">Reach Out</div>
+        <h2>Let's start<br><em>a conversation</em></h2>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Address</div>
+          <div class="contact-detail-val">12 Rue des Arts<br>75004 Paris, France</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Hours</div>
+          <div class="contact-detail-val">Tuesday – Saturday<br>11:00 – 19:00</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Email</div>
+          <div class="contact-detail-val">info@voltagallery.com</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Phone</div>
+          <div class="contact-detail-val">+33 1 42 74 88 20</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Social</div>
+          <div class="contact-detail-val">@voltagallery</div>
+        </div>
+      </div>
+      <div class="contact-form-wrap">
+        <h2>Send a <em>Message</em></h2>
+        <div class="form-row">
+          <div class="form-field"><label>First Name</label><input type="text" placeholder="Isabelle"></div>
+          <div class="form-field"><label>Last Name</label><input type="text" placeholder="Renard"></div>
+        </div>
+        <div class="form-field"><label>Email</label><input type="email" placeholder="you@example.com"></div>
+        <div class="form-field">
+          <label>Subject</label>
+          <select>
+            <option>General Inquiry</option>
+            <option>Artwork Acquisition</option>
+            <option>Exhibition Proposal</option>
+            <option>Press & Media</option>
+            <option>Education & Outreach</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Message</label><textarea placeholder="Tell us how we can help..."></textarea></div>
+        <button class="btn-primary" onclick="submitForm()" style="width:100%;justify-content:center">Send Message →</button>
+        <div class="form-success" id="formSuccess">
+          ✦ Thank you. We'll be in touch within 2 business days.
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div><div class="footer-brand">VOLT<span>A</span></div></div>
+    <div class="footer-col"><h4>Navigate</h4><a href="#" onclick="showPage('home')">Home</a><a href="#" onclick="showPage('gallery')">Collection</a></div>
+    <div class="footer-col"><h4>Locations</h4><a href="#">Paris</a><a href="#">New York</a><a href="#">Tokyo</a></div>
+  </footer>
+</div>
+
+<!-- ARTWORK MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-img-side">
+      <img id="modalImg" src="" alt="">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-info">
+      <div class="modal-artist-tag" id="modalArtist" onclick="goToArtists()"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-desc" id="modalDesc"></div>
+      <div class="modal-specs" id="modalSpecs"></div>
+      <div class="modal-price" id="modalPrice"></div>
+      <div class="modal-actions">
+        <button class="btn-inquire" onclick="showPage('contact');closeModal()">Inquire to Purchase</button>
+        <button class="btn-wishlist">♡ Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const artworks = [
+  { id:0, title:"Threshold", artist:"Mara Voss", year:2023, medium:"Oil on Canvas", type:"Painting", dims:"180 × 140 cm", price:"€ 18,500", img:"https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&auto=format&fit=crop", desc:"A meditation on liminal spaces — the moment before transformation. Voss layers translucent veils of oil paint to evoke a sense of weightless transition." },
+  { id:1, title:"Silent Grid", artist:"Ren Takeda", year:2022, medium:"Mixed Media", type:"Mixed Media", dims:"120 × 100 cm", price:"€ 8,200", img:"https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&auto=format&fit=crop", desc:"Takeda's grid works explore the tension between structure and entropy — ordered forms slowly dissolving at the edges into raw material." },
+  { id:2, title:"Erosion Study III", artist:"Camille Dufresne", year:2023, medium:"Acrylic on Linen", type:"Painting", dims:"90 × 90 cm", price:"€ 6,400", img:"https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&auto=format&fit=crop", desc:"Third in a series examining geological time through the lens of painting. Dufresne applies and removes layers of acrylic to simulate millennia of erosion." },
+  { id:3, title:"Night Archive", artist:"Luca Marini", year:2021, medium:"C-Type Print", type:"Photography", dims:"80 × 100 cm", price:"€ 3,800", img:"https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=800&auto=format&fit=crop", desc:"An archival series documenting empty urban spaces after midnight. Marini's long-exposure photographs reveal a city stripped of its performers." },
+  { id:4, title:"Passage", artist:"Seo Yoon Park", year:2022, medium:"Cast Bronze", type:"Sculpture", dims:"45 × 30 × 28 cm", price:"€ 22,000", img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop", desc:"A diminutive bronze form that belies its monumental presence. Park creates works that feel simultaneously ancient and forward-looking." },
+  { id:5, title:"Field Study", artist:"Mara Voss", year:2022, medium:"Oil on Canvas", type:"Painting", dims:"200 × 160 cm", price:"€ 21,000", img:"https://images.unsplash.com/photo-1531913764164-f85c52e6e654?w=800&auto=format&fit=crop", desc:"Expansive field compositions that dissolve the boundary between landscape and abstraction. Voss paints from memory, not observation." },
+  { id:6, title:"Untitled (Blue)", artist:"Camille Dufresne", year:2021, medium:"Acrylic & Resin", type:"Painting", dims:"150 × 120 cm", price:"€ 9,800", img:"https://images.unsplash.com/photo-1512850183-6d7990f42385?w=800&auto=format&fit=crop", desc:"A study in chromatic depth. Dufresne pours layers of resin tinted with cadmium blue over gessoed linen, building a surface that breathes light." },
+  { id:7, title:"Echo", artist:"Ren Takeda", year:2023, medium:"Steel & Found Objects", type:"Installation", dims:"Variable", price:"Inquire", img:"https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=800&auto=format&fit=crop", desc:"A site-specific installation using industrial materials to explore repetition and resonance. Each iteration of Echo is unique to its location." },
+  { id:8, title:"Meridian", artist:"Luca Marini", year:2023, medium:"Archival Inkjet Print", type:"Photography", dims:"100 × 80 cm", price:"€ 4,600", img:"https://images.unsplash.com/photo-1549490349-8643362247b5?w=800&auto=format&fit=crop", desc:"Landscapes shot at the exact moment of solar noon — Marini's light studies document the invisible geometry of sunlight across different latitudes." },
+  { id:9, title:"Fold", artist:"Seo Yoon Park", year:2023, medium:"Marble", type:"Sculpture", dims:"60 × 40 × 35 cm", price:"€ 34,000", img:"https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&auto=format&fit=crop", desc:"Carved in Carrara marble, Fold captures fabric in its most impossible moment — frozen mid-movement, defying the stone's weight." },
+  { id:10, title:"Amber Hour", artist:"Yael Ben-David", year:2023, medium:"Oil on Board", type:"Painting", dims:"60 × 60 cm", price:"€ 5,200", img:"https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&auto=format&fit=crop", desc:"Small-format paintings that trap a specific quality of late-afternoon light. Ben-David paints the same view over 365 days." },
+  { id:11, title:"Corpus", artist:"Yael Ben-David", year:2022, medium:"Charcoal & Gesso", type:"Mixed Media", dims:"140 × 100 cm", price:"€ 7,600", img:"https://images.unsplash.com/photo-1553949333-e2e5d9d2f80b?w=800&auto=format&fit=crop", desc:"Large-scale charcoal works that investigate the body as landscape. Ben-David's figures emerge from dense atmospheric grounds of white gesso." },
+];
+
+const artists = [
+  { name:"Mara Voss", nationality:"German", medium:"Painting", bio:"Born in Berlin, 1983. Voss studied at the Städelschule and has exhibited internationally.", img:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop", works:3 },
+  { name:"Ren Takeda", nationality:"Japanese", medium:"Mixed Media / Installation", bio:"Tokyo-born artist whose work interrogates systems and structures.", img:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop", works:2 },
+  { name:"Camille Dufresne", nationality:"French", medium:"Painting", bio:"Dufresne's practice is rooted in the materiality of paint and time.", img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop", works:2 },
+  { name:"Luca Marini", nationality:"Italian", medium:"Photography", bio:"Documentary and fine art photographer working between Rome and New York.", img:"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop", works:2 },
+  { name:"Seo Yoon Park", nationality:"Korean", medium:"Sculpture", bio:"Park creates sculptural works that explore permanence and impermanence.", img:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop", works:2 },
+  { name:"Yael Ben-David", nationality:"Israeli", medium:"Painting / Drawing", bio:"Light and duration are central themes in Ben-David's multi-year painting projects.", img:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop", works:2 },
+];
+
+const exhibitions = [
+  { title:"Fragments of the Unseen", dates:"March 1 – April 20, 2026", status:"current", img:"https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=600&auto=format&fit=crop", desc:"A group exhibition exploring negative space, silence, and the art of what is withheld. Six artists consider the unseen as a subject in its own right." },
+  { title:"Material Memory", dates:"May 10 – June 28, 2026", status:"upcoming", img:"https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&auto=format&fit=crop", desc:"A survey of sculptural and installation works that embed personal and collective memory into physical form." },
+  { title:"States of Duration", dates:"Nov 4 – Dec 20, 2025", status:"past", img:"https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=600&auto=format&fit=crop", desc:"Solo exhibition by Mara Voss — her most ambitious series to date, created over three years of continuous painting." },
+  { title:"Field / Ground", dates:"Sep 1 – Oct 15, 2025", status:"past", img:"https://images.unsplash.com/photo-1531913764164-f85c52e6e654?w=600&auto=format&fit=crop", desc:"A curatorial meditation on landscape — not as genre but as psychological territory. Works by seven international artists." },
+  { title:"Night Studies", dates:"Jun 12 – Aug 2, 2025", status:"past", img:"https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=600&auto=format&fit=crop", desc:"Luca Marini's celebrated night photography series, presented in a complete gallery installation for the first time." },
+  { title:"Echo Chamber", dates:"Mar 5 – May 1, 2025", status:"past", img:"https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=600&auto=format&fit=crop", desc:"Ren Takeda's first major European survey, featuring the Echo installation series across all gallery spaces." },
+];
+
+// ===== CURSOR =====
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+  ring.style.left = e.clientX + 'px';
+  ring.style.top = e.clientY + 'px';
+});
+document.addEventListener('mouseover', e => {
+  if(e.target.closest('a,button,[onclick]')) document.body.classList.add('cursor-hover');
+  else document.body.classList.remove('cursor-hover');
+});
+
+// ===== NAV SCROLL =====
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ===== PAGE ROUTING =====
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.toggle('active', a.dataset.page === id));
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(id === 'gallery') renderGallery(artworks);
+  if(id === 'artists') renderArtists(artists);
+  if(id === 'exhibitions') renderExhibitions(exhibitions);
+  setTimeout(initFadeUp, 100);
+}
+
+// ===== MOBILE MENU =====
+function toggleMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
+// ===== RENDER GALLERY =====
+function renderGallery(data) {
+  const grid = document.getElementById('artworksGrid');
+  grid.innerHTML = data.map((a,i) => `
+    <div class="artwork-grid-card fade-up" onclick="openModal(${a.id})" style="animation-delay:${i*0.05}s">
+      <div class="img-wrap"><img src="${a.img}" alt="${a.title}" loading="lazy" style="height:${200 + (i%3)*60}px"></div>
+      <div class="card-title">${a.title}</div>
+      <div class="card-artist">${a.artist} — ${a.year}</div>
+      <div class="card-artist" style="margin-top:0.2rem">${a.medium}</div>
+      <div class="card-price">${a.price}</div>
+    </div>
+  `).join('');
+  setTimeout(initFadeUp, 50);
+}
+
+function filterWorks(type, btn) {
+  document.querySelectorAll('#galleryFilters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGallery(type === 'all' ? artworks : artworks.filter(a => a.type === type));
+}
+
+// ===== RENDER ARTISTS =====
+function renderArtists(data) {
+  document.getElementById('artistsGrid').innerHTML = data.map((a,i) => `
+    <div class="artist-card fade-up" style="animation-delay:${i*0.07}s">
+      <img src="${a.img}" alt="${a.name}" loading="lazy">
+      <div class="artist-info">
+        <div class="artist-name">${a.name}</div>
+        <div class="artist-detail">${a.nationality} · ${a.medium}</div>
+        <div class="artist-works-count">${a.works} works in collection</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.7rem;line-height:1.6">${a.bio}</div>
+      </div>
+    </div>
+  `).join('');
+  setTimeout(initFadeUp, 50);
+}
+
+// ===== RENDER EXHIBITIONS =====
+function renderExhibitions(data) {
+  document.getElementById('exhibitionsGrid').innerHTML = data.map((e,i) => `
+    <div class="exhibition-card fade-up" style="animation-delay:${i*0.07}s">
+      <div style="overflow:hidden"><img src="${e.img}" alt="${e.title}" loading="lazy"></div>
+      <div class="exhibition-card-body">
+        <span class="exhibition-badge badge-${e.status}">${e.status.charAt(0).toUpperCase()+e.status.slice(1)}</span>
+        <div class="ex-card-name">${e.title}</div>
+        <div class="ex-card-dates">${e.dates}</div>
+        <div class="ex-card-desc">${e.desc}</div>
+      </div>
+    </div>
+  `).join('');
+  setTimeout(initFadeUp, 50);
+}
+
+function filterExhibitions(status, btn) {
+  document.querySelectorAll('#page-exhibitions .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderExhibitions(status === 'all' ? exhibitions : exhibitions.filter(e => e.status === status));
+}
+
+// ===== MODAL =====
+function openModal(id) {
+  const a = artworks[id];
+  document.getElementById('modalImg').src = a.img;
+  document.getElementById('modalArtist').textContent = a.artist.toUpperCase();
+  document.getElementById('modalTitle').textContent = a.title;
+  document.getElementById('modalDesc').textContent = a.desc;
+  document.getElementById('modalPrice').textContent = a.price;
+  document.getElementById('modalSpecs').innerHTML = `
+    <div class="spec-row"><span class="spec-key">Year</span><span class="spec-val">${a.year}</span></div>
+    <div class="spec-row"><span class="spec-key">Medium</span><span class="spec-val">${a.medium}</span></div>
+    <div class="spec-row"><span class="spec-key">Dimensions</span><span class="spec-val">${a.dims}</span></div>
+    <div class="spec-row"><span class="spec-key">Category</span><span class="spec-val">${a.type}</span></div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeModalOutside(e) { if(e.target === document.getElementById('modalOverlay')) closeModal(); }
+function goToArtists() { closeModal(); showPage('artists'); }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+// ===== FORM =====
+function submitForm() {
+  document.getElementById('formSuccess').classList.add('show');
+  setTimeout(() => document.getElementById('formSuccess').classList.remove('show'), 5000);
+}
+
+// ===== FADE UP OBSERVER =====
+function initFadeUp() {
+  const els = document.querySelectorAll('.fade-up:not(.visible)');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  els.forEach(el => obs.observe(el));
+}
+initFadeUp();
+</script>
+</body>
+</html>
